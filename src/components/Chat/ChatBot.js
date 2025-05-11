@@ -18,7 +18,7 @@ function ChatBot() {
     // Bot response
     setTimeout(() => {
       const botResponses = [
-        "I can help you with license applications, renewals, and status checks.",
+        "I can help you with license applications renewals, and status checks.",
         "You can upload documents through the 'Apply for License' section.",
         "Approval usually takes 3-5 business days after document submission.",
         "For rejected applications, you'll receive a reason and can reapply.",
