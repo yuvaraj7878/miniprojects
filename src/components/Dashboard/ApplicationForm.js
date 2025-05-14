@@ -399,23 +399,28 @@ function ApplicationForm() {
           <Step key={label}><StepLabel>{label}</StepLabel></Step>
         ))}
       </Stepper>
-      <form>{renderStepContent(activeStep)}</form>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-        <Button disabled={activeStep === 0 || loading} onClick={handleBack}>
-          Back
-        </Button>
-        {activeStep === steps.length - 1 ? (
-          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? <CircularProgress size={20} /> : 'Submit'}
-          </Button>
-        ) : (
-          <Button variant="contained" onClick={handleNext}>
-            Next
-          </Button>
-        )}
-      </Box>
 
-      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+      <Card>
+        <CardContent>
+          {renderStepContent(activeStep)}
+          
+          {activeStep < 6 && activeStep !== 4 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button onClick={handleBack} disabled={activeStep === 0}>
+                Back
+              </Button>
+              <Button variant="contained" onClick={
+                activeStep === 5 ? submitApplication : handleNext
+              }>
+                {activeStep === 5 ? 'Submit Application' : 'Next'}
+              </Button>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
     </Box>
