@@ -20,33 +20,48 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
-          
+
           <Route path="/" element={<MainLayout />}>
-            <Route index element={
-              <ProtectedRoute>
-                <ApplicationForm />
-              </ProtectedRoute>
-            } />
-            <Route path="status" element={
-              <ProtectedRoute>
-                <ApplicationStatus />
-              </ProtectedRoute>
-            } />
-            <Route path="renew" element={
-              <ProtectedRoute>
-                <RenewLicense />
-              </ProtectedRoute>
-            } />
-            <Route path="help" element={
-              <ProtectedRoute>
-                <HelpGuides />
-              </ProtectedRoute>
-            } />
-            <Route path="admin" element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            } />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <ApplicationForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="status"
+              element={
+                <ProtectedRoute>
+                  <ApplicationStatus />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="renew"
+              element={
+                <ProtectedRoute>
+                  <RenewLicense />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="help"
+              element={
+                <ProtectedRoute>
+                  <HelpGuides />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
           </Route>
         </Routes>
         <ChatBot />
