@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   Button,
+  
   CircularProgress,
   Dialog,
   DialogTitle,
@@ -15,57 +16,53 @@ import {
   Radio,
   Snackbar,
   Alert,
-  Tabs,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Grid,
   Paper,
-  Chip,
-  TextField,
-  Avatar,
   Divider,
-  IconButton,
-  Tooltip
+  Chip,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Badge
 } from '@mui/material';
 import {
-  CheckCircle,
-  Cancel,
-  Visibility,
-  Assignment,
-  People,
-  Receipt,
-  Settings,
-  Refresh,
-  Search,
-  FilterList,
-  Download
+  Business as BusinessIcon,
+  Person as PersonIcon,
+  AttachMoney as PaymentIcon,
+  Description as DescriptionIcon,
+  DocumentScanner as DocumentIcon,
+  CheckCircle as ApprovedIcon,
+  Cancel as RejectedIcon,
+  Pending as PendingIcon,
+  Folder as ApplicationIcon
 } from '@mui/icons-material';
+
+const statusChip = (status) => {
+  switch (status) {
+    case 'Approved':
+      return <Chip icon={<ApprovedIcon />} label="Approved" color="success" variant="outlined" />;
+    case 'Rejected':
+      return <Chip icon={<RejectedIcon />} label="Rejected" color="error" variant="outlined" />;
+    default:
+      return <Chip icon={<PendingIcon />} label="Pending" color="warning" variant="outlined" />;
+  }
+};
 
 const AdminDashboard = () => {
   const [applications, setApplications] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
   const [decision, setDecision] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [tabValue, setTabValue] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Load data from localStorage
   useEffect(() => {
     try {
-      const storedApps = JSON.parse(localStorage.getItem('applications') || []);
-      const storedUsers = JSON.parse(localStorage.getItem('users') || []);
+      const storedApps = JSON.parse(localStorage.getItem('applications') || '[]');
       setApplications(storedApps);
-      setUsers(storedUsers);
-    } catch (error) {
-      setSnackbar({ open: true, message: 'Error loading data', severity: 'error' });
+    } catch {
+      setSnackbar({ open: true, message: 'Error loading applications', severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -74,58 +71,21 @@ const AdminDashboard = () => {
   const handleReview = (app) => {
     setSelectedApp(app);
     setDecision(app.status === 'Pending' ? '' : app.status);
-    setRemarks(app.remarks || '');
   };
 
   const handleReviewClose = () => {
     setSelectedApp(null);
     setDecision('');
-    setRemarks('');
   };
 
   const submitDecision = () => {
     if (!selectedApp || !decision) return;
 
-    const updatedApps = applications.map(app => 
-      app.id === selectedApp.id 
-        ? { 
-            ...app, 
-            status: decision,
-            reviewedBy: 'Admin', // In real app, use actual admin ID
-            reviewedAt: new Date().toISOString(),
-            remarks
-          } 
-        : app
+    const updated = applications.map((app) =>
+      app.id === selectedApp.id ? { ...app, status: decision } : app
     );
-
-    // If approved, update user's licenses
-    if (decision === 'Approved') {
-      const userToUpdate = users.find(u => u.id === selectedApp.userId);
-      if (userToUpdate) {
-        const updatedUsers = users.map(user => 
-          user.id === selectedApp.userId
-            ? {
-                ...user,
-                licenses: [
-                  ...(user.licenses || []),
-                  {
-                    id: selectedApp.id,
-                    type: selectedApp.licenseType,
-                    issuedDate: new Date().toISOString(),
-                    expiryDate: calculateExpiryDate(1), // 1 year validity
-                    status: 'Active'
-                  }
-                ]
-              }
-            : user
-        );
-        setUsers(updatedUsers);
-        localStorage.setItem('users', JSON.stringify(updatedUsers));
-      }
-    }
-
-    setApplications(updatedApps);
-    localStorage.setItem('applications', JSON.stringify(updatedApps));
+    setApplications(updated);
+    localStorage.setItem('applications', JSON.stringify(updated));
 
     setSnackbar({
       open: true,
@@ -135,261 +95,276 @@ const AdminDashboard = () => {
     handleReviewClose();
   };
 
-  const calculateExpiryDate = (years) => {
-    const date = new Date();
-    date.setFullYear(date.getFullYear() + years);
-    return date.toISOString();
-  };
-
-  const filteredApplications = applications.filter(app => {
-    const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         app.licenseType.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'All' || app.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
-
-  const pendingCount = applications.filter(app => app.status === 'Pending').length;
-  const approvedCount = applications.filter(app => app.status === 'Approved').length;
-  const rejectedCount = applications.filter(app => app.status === 'Rejected').length;
-
-  const getStatusChip = (status) => {
-    switch(status) {
-      case 'Approved':
-        return <Chip icon={<CheckCircle />} label="Approved" color="success" size="small" />;
-      case 'Rejected':
-        return <Chip icon={<Cancel />} label="Rejected" color="error" size="small" />;
-      default:
-        return <Chip label="Pending" color="warning" size="small" />;
-    }
-  };
-
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-        <Assignment sx={{ verticalAlign: 'middle', mr: 1 }} />
-        License Management Dashboard
-      </Typography>
-
-      <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
-        <Tab label={<><People sx={{ mr: 1 }} /> Applications ({applications.length})</>} />
-        <Tab label={<><Receipt sx={{ mr: 1 }} /> Transactions</>} />
-        <Tab label={<><Settings sx={{ mr: 1 }} /> Settings</>} />
-      </Tabs>
-
-      {tabValue === 0 && (
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                size="small"
-                placeholder="Search applications..."
-                InputProps={{ startAdornment: <Search sx={{ mr: 1 }} /> }}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Button
-                variant="outlined"
-                startIcon={<FilterList />}
-                onClick={() => setFilterStatus(filterStatus === 'All' ? 'Pending' : filterStatus === 'Pending' ? 'Approved' : filterStatus === 'Approved' ? 'Rejected' : 'All')}
-              >
-                {filterStatus}
-              </Button>
-            </Box>
-            <Button variant="contained" startIcon={<Refresh />} onClick={() => window.location.reload()}>
-              Refresh
-            </Button>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-            <StatCard 
-              title="Pending" 
-              value={pendingCount} 
-              icon={<CheckCircle color="warning" />} 
-              color="warning.light" 
-            />
-            <StatCard 
-              title="Approved" 
-              value={approvedCount} 
-              icon={<CheckCircle color="success" />} 
-              color="success.light" 
-            />
-            <StatCard 
-              title="Rejected" 
-              value={rejectedCount} 
-              icon={<Cancel color="error" />} 
-              color="error.light" 
-            />
-          </Box>
-
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Applicant</TableCell>
-                    <TableCell>License Type</TableCell>
-                    <TableCell>Submitted On</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredApplications.map((app) => (
-                    <TableRow key={app.id}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar sx={{ mr: 2 }}>{app.name.charAt(0)}</Avatar>
-                          <Box>
-                            <Typography>{app.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">{app.email}</Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        {app.licenseType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(app.submittedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusChip(app.status)}
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip title="Review Application">
-                          <IconButton color="primary" onClick={() => handleReview(app)}>
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Download Documents">
-                          <IconButton color="secondary">
-                            <Download />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </>
-      )}
-
-      {tabValue === 1 && (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="h6">Payment Transactions</Typography>
-          <Typography color="text.secondary">Feature coming soon</Typography>
-        </Box>
-      )}
-
-      {tabValue === 2 && (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="h6">Admin Settings</Typography>
-          <Typography color="text.secondary">Feature coming soon</Typography>
-        </Box>
-      )}
-
-      {/* Review Dialog */}
-      <Dialog open={!!selectedApp} onClose={handleReviewClose} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Review Application: {selectedApp?.name}
-          <Typography variant="subtitle2" color="text.secondary">
-            {selectedApp?.licenseType}
+    <Box sx={{ p: 4 }}>
+      <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h4" component="h1" fontWeight="bold">
+            License Applications Dashboard
           </Typography>
+          <Badge badgeContent={applications.length} color="primary" showZero>
+            <ApplicationIcon color="action" fontSize="large" />
+          </Badge>
+        </Box>
+        
+        <Grid container spacing={2} mb={2}>
+          <Grid item xs={12} md={4}>
+            <Paper elevation={0} sx={{ p: 2, bgcolor: 'success.light', borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="success.contrastText">
+                Approved
+              </Typography>
+              <Typography variant="h4" color="success.contrastText">
+                {applications.filter(app => app.status === 'Approved').length}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper elevation={0} sx={{ p: 2, bgcolor: 'error.light', borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="error.contrastText">
+                Rejected
+              </Typography>
+              <Typography variant="h4" color="error.contrastText">
+                {applications.filter(app => app.status === 'Rejected').length}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper elevation={0} sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="warning.contrastText">
+                Pending
+              </Typography>
+              <Typography variant="h4" color="warning.contrastText">
+                {applications.filter(app => app.status === 'Pending').length}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress size={60} />
+        </Box>
+      ) : applications.length === 0 ? (
+        <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+          <Typography variant="h6" color="textSecondary">
+            No applications found
+          </Typography>
+        </Paper>
+      ) : (
+        <Grid container spacing={3}>
+          {applications.map((app) => (
+            <Grid item xs={12} key={app.id}>
+              <Card elevation={2} sx={{ borderRadius: 2 }}>
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold" gutterBottom>
+                        #{app.id}
+                      </Typography>
+                      <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                        {app.business?.type || "Business Type Not Specified"}
+                      </Typography>
+                    </Box>
+                    {statusChip(app.status)}
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                      <Box display="flex" alignItems="center" mb={1}>
+                        <PersonIcon color="action" sx={{ mr: 1 }} />
+                        <Typography variant="subtitle2">Applicant</Typography>
+                      </Box>
+                      <Typography variant="body2">{app.basic?.name || "N/A"}</Typography>
+                      <Typography variant="body2" color="textSecondary">{app.basic?.email || "N/A"}</Typography>
+                      <Typography variant="body2" color="textSecondary">{app.basic?.phone || "N/A"}</Typography>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <Box display="flex" alignItems="center" mb={1}>
+                        <BusinessIcon color="action" sx={{ mr: 1 }} />
+                        <Typography variant="subtitle2">Business</Typography>
+                      </Box>
+                      <Typography variant="body2">{app.business?.location || "N/A"}</Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {app.business?.licenseType || "N/A"}
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <Box display="flex" alignItems="center" mb={1}>
+                        <PaymentIcon color="action" sx={{ mr: 1 }} />
+                        <Typography variant="subtitle2">Payment</Typography>
+                      </Box>
+                      <Typography variant="body2">₹{app.payment?.total || "0"}</Typography>
+                      <Chip
+                        label={app.payment?.paid ? "Paid" : "Unpaid"}
+                        size="small"
+                        color={app.payment?.paid ? "success" : "error"}
+                        variant="outlined"
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Box mt={2} display="flex" justifyContent="flex-end">
+                    <Button
+                      variant="contained"
+                      onClick={() => handleReview(app)}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Review Application
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      <Dialog open={!!selectedApp} onClose={handleReviewClose} fullWidth maxWidth="md">
+        <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
+          <Box display="flex" alignItems="center">
+            <ApplicationIcon sx={{ mr: 1 }} />
+            Review Application #{selectedApp?.id}
+          </Box>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ py: 3 }}>
           {selectedApp && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ display: 'flex', gap: 4 }}>
-                <Box>
-                  <Typography variant="subtitle2">Applicant Details</Typography>
-                  <Typography>Email: {selectedApp.email}</Typography>
-                  <Typography>Phone: {selectedApp.phone}</Typography>
-                  <Typography>Submitted: {new Date(selectedApp.submittedAt).toLocaleString()}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2">Business Details</Typography>
-                  <Typography>Type: {selectedApp.businessType}</Typography>
-                  <Typography>Location: {selectedApp.businessLocation}</Typography>
-                </Box>
-              </Box>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                    <PersonIcon color="primary" sx={{ mr: 1 }} />
+                    Applicant Information
+                  </Typography>
+                  <List dense>
+                    <ListItem>
+                      <ListItemText primary="Name" secondary={selectedApp.basic?.name || "N/A"} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText primary="Email" secondary={selectedApp.basic?.email || "N/A"} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText primary="Phone" secondary={selectedApp.basic?.phone || "N/A"} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText primary="Address" secondary={selectedApp.basic?.address || "N/A"} />
+                    </ListItem>
+                  </List>
+                </Paper>
 
-              <Divider />
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2, mt: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                    <BusinessIcon color="primary" sx={{ mr: 1 }} />
+                    Business Details
+                  </Typography>
+                  <List dense>
+                    <ListItem>
+                      <ListItemText primary="Business Type" secondary={selectedApp.business?.type || "N/A"} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText primary="Location" secondary={selectedApp.business?.location || "N/A"} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText primary="License Type" secondary={selectedApp.business?.licenseType || "N/A"} />
+                    </ListItem>
+                  </List>
+                </Paper>
+              </Grid>
 
-              <Box>
-                <Typography variant="subtitle2">Documents</Typography>
-                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                  {selectedApp.documents?.map((doc, index) => (
-                    <Card key={index} sx={{ p: 1 }}>
-                      <CardContent sx={{ textAlign: 'center' }}>
-                        <Assignment sx={{ fontSize: 40 }} />
-                        <Typography>{doc.type}</Typography>
-                        <Button size="small" sx={{ mt: 1 }}>View</Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Box>
-              </Box>
+              <Grid item xs={12} md={6}>
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                    <PaymentIcon color="primary" sx={{ mr: 1 }} />
+                    Payment Information
+                  </Typography>
+                  <List dense>
+                    <ListItem>
+                      <ListItemText primary="Total Amount" secondary={`₹${selectedApp.payment?.total || "0"}`} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText 
+                        primary="Payment Status" 
+                        secondary={
+                          <Chip
+                            label={selectedApp.payment?.paid ? "Paid" : "Unpaid"}
+                            color={selectedApp.payment?.paid ? "success" : "error"}
+                            size="small"
+                          />
+                        } 
+                      />
+                    </ListItem>
+                  </List>
+                </Paper>
 
-              <Divider />
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2, mt: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                    <DocumentIcon color="primary" sx={{ mr: 1 }} />
+                    Submitted Documents
+                  </Typography>
+                  {selectedApp.certificates && selectedApp.certificates.length > 0 ? (
+                    <List dense>
+                      {selectedApp.certificates.map((doc, index) => (
+                        <ListItem key={index}>
+                          <ListItemIcon>
+                            <DescriptionIcon color="action" />
+                          </ListItemIcon>
+                          <ListItemText primary={doc} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                      No documents uploaded
+                    </Typography>
+                  )}
+                </Paper>
 
-              <Box>
-                <Typography variant="subtitle2">Decision</Typography>
-                <RadioGroup 
-                  row 
-                  value={decision} 
-                  onChange={(e) => setDecision(e.target.value)}
-                  sx={{ my: 1 }}
-                >
-                  <FormControlLabel 
-                    value="Approved" 
-                    control={<Radio />} 
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <CheckCircle color="success" sx={{ mr: 1 }} />
-                        Approve
-                      </Box>
-                    } 
-                  />
-                  <FormControlLabel 
-                    value="Rejected" 
-                    control={<Radio />} 
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Cancel color="error" sx={{ mr: 1 }} />
-                        Reject
-                      </Box>
-                    } 
-                  />
-                </RadioGroup>
-
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Remarks"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  placeholder="Add comments for your decision..."
-                  sx={{ mt: 2 }}
-                />
-              </Box>
-            </Box>
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2, mt: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Review Decision
+                  </Typography>
+                  <RadioGroup value={decision} onChange={(e) => setDecision(e.target.value)}>
+                    <FormControlLabel 
+                      value="Approved" 
+                      control={<Radio color="success" />} 
+                      label={
+                        <Box display="flex" alignItems="center">
+                          <ApprovedIcon color="success" sx={{ mr: 1 }} />
+                          Approve Application
+                        </Box>
+                      } 
+                    />
+                    <FormControlLabel 
+                      value="Rejected" 
+                      control={<Radio color="error" />} 
+                      label={
+                        <Box display="flex" alignItems="center">
+                          <RejectedIcon color="error" sx={{ mr: 1 }} />
+                          Reject Application
+                        </Box>
+                      } 
+                    />
+                  </RadioGroup>
+                </Paper>
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleReviewClose}>Cancel</Button>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
+          <Button onClick={handleReviewClose} variant="outlined" sx={{ mr: 2 }}>
+            Cancel
+          </Button>
           <Button 
             onClick={submitDecision} 
             disabled={!decision}
             variant="contained"
             color={decision === 'Approved' ? 'success' : 'error'}
           >
-            {decision === 'Approved' ? 'Approve Application' : 'Reject Application'}
+            Submit Decision
           </Button>
         </DialogActions>
       </Dialog>
@@ -400,27 +375,17 @@ const AdminDashboard = () => {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+          elevation={6}
+          variant="filled"
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
     </Box>
   );
 };
-
-// Helper component for stats cards
-const StatCard = ({ title, value, icon, color }) => (
-  <Card sx={{ flex: 1, bgcolor: color }}>
-    <CardContent sx={{ display: 'flex', justifyContent: 'space-between' }}>
-      <Box>
-        <Typography variant="subtitle2">{title}</Typography>
-        <Typography variant="h4">{value}</Typography>
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        {icon}
-      </Box>
-    </CardContent>
-  </Card>
-);
 
 export default AdminDashboard;

@@ -162,30 +162,38 @@ function ApplicationForm() {
   };
 
   const submitApplication = async () => {
-    setLoading(true);
-    try {
-      const appId = `APP-${Math.floor(100000 + Math.random() * 900000)}`;
-      const application = {
-        id: appId,
-        ...formData,
-        status: 'pending',
-        date: new Date().toISOString()
-      };
+  setLoading(true);
+  try {
+    const appId = `APP-${Math.floor(100000 + Math.random() * 900000)}`;
+    console.log('Form Data:', formData); // 👉 Check if formData has all values
 
-      // Save to localStorage
-      const existing = JSON.parse(localStorage.getItem('applications') || []);
-      localStorage.setItem('applications', JSON.stringify([...existing, application]));
-      
-      // Send confirmation
-      setApplicationId(appId);
-      handleNext();
-      sendNotifications(appId);
-    } catch (error) {
-      setSnackbar({ open: true, message: 'Submission failed!', severity: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
+    const application = {
+      id: appId,
+      ...formData,
+      status: 'pending',
+      date: new Date().toISOString()
+    };
+
+    // ✅ Correctly parse or default to an empty array
+    const existing = JSON.parse(localStorage.getItem('applications')) || [];
+    
+    // ✅ Log existing applications
+    console.log('Existing Applications:', existing);
+
+    localStorage.setItem('applications', JSON.stringify([...existing, application]));
+
+    // Send confirmation
+    setApplicationId(appId);
+    handleNext();
+    sendNotifications(appId);
+  } catch (error) {
+    console.log('Error submitting application:', error.message);
+    setSnackbar({ open: true, message: 'Submission failed!', severity: 'error' });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const sendNotifications = (appId) => {
     // Simulate notifications

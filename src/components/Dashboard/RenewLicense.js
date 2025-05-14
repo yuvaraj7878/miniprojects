@@ -1,11 +1,57 @@
 import React, { useContext, useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  Button, 
+  CircularProgress, 
+  Alert, 
+  AlertTitle,
+  Grid,
+  Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  IconButton,
+  Tooltip,
+  Paper
+} from '@mui/material';
+import {
+  Help as HelpIcon,
+  Description as DocumentIcon,
+  Event as CalendarIcon,
+  Autorenew as RenewIcon,
+  CheckCircle as SuccessIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon,
+  Lock as SecureIcon
+} from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
 
-function RenewLicense() {
+const RenewLicense = () => {
   const { currentUser } = useContext(AuthContext);
   const [selectedLicense, setSelectedLicense] = useState('');
   const [renewalStatus, setRenewalStatus] = useState({ message: '', isSuccess: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dummy data fallback
+  const dummyLicenses = [
+    { applicationType: 'business_license', status: 'approved' },
+    { applicationType: 'health_permit', status: 'approved' },
+    { applicationType: 'alcohol_license', status: 'approved' }
+  ];
+
+  // Get user's licenses or use dummy data if none exist
+  const userLicenses = currentUser?.documents?.filter(
+    doc => (doc.status === 'approved' || doc.status === 'completed') && 
+           doc.type === 'license'
+  ) || [];
+
+  // Use user's licenses if available, otherwise use dummy data
+  const approvedLicenses = userLicenses.length > 0 ? userLicenses : dummyLicenses;
 
   const handleRenew = () => {
     if (!selectedLicense) {
@@ -18,7 +64,7 @@ function RenewLicense() {
     // Simulate API call
     setTimeout(() => {
       setRenewalStatus({ 
-        message: `Renewal request for ${selectedLicense} submitted successfully!`, 
+        message: `Renewal request for ${formatLicenseName(selectedLicense)} submitted successfully!`, 
         isSuccess: true 
       });
       setIsSubmitting(false);
@@ -31,128 +77,165 @@ function RenewLicense() {
     }, 1500);
   };
 
-  const approvedLicenses = currentUser.documents?.filter(
-    doc => (doc.status === 'approved' || doc.status === 'completed') && 
-           doc.type === 'license'
-  ) || [];
-
   const formatLicenseName = (name) => {
+    if (!name) return '';
     return name.replace(/_/g, ' ')
               .replace(/\b\w/g, l => l.toUpperCase())
               .replace(/([a-z])([A-Z])/g, '$1 $2');
   };
 
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-lg-8">
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-white border-bottom">
-              <h2 className="h4 mb-0 text-primary">License Renewal</h2>
-              <p className="text-muted mb-0">Renew your business licenses in one simple step</p>
-            </div>
+    <Box sx={{ p: 4 }}>
+      <Grid container justifyContent="center">
+        <Grid item xs={12} md={8}>
+          <Card elevation={3} sx={{ borderRadius: 2 }}>
+            <CardHeader
+              title={
+                <Typography variant="h5" component="div" color="primary">
+                  License Renewal
+                </Typography>
+              }
+              subheader="Renew your business licenses in one simple step"
+              sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}
+            />
             
-            <div className="card-body">
-              <div className="mb-4">
-                <label htmlFor="licenseSelect" className="form-label fw-bold">
-                  Select License to Renew
-                </label>
-                <select
+            <CardContent>
+              <FormControl fullWidth sx={{ mb: 4 }}>
+                <InputLabel id="license-select-label">Select License to Renew</InputLabel>
+                <Select
+                  labelId="license-select-label"
                   id="licenseSelect"
-                  className="form-select"
                   value={selectedLicense}
+                  label="Select License to Renew"
                   onChange={(e) => setSelectedLicense(e.target.value)}
                 >
-                  <option value="">Choose a license...</option>
+                  <MenuItem value="">
+                    <em>Choose a license...</em>
+                  </MenuItem>
                   {approvedLicenses.map((license, index) => (
-                    <option key={index} value={license.applicationType}>
+                    <MenuItem key={index} value={license.applicationType}>
                       {formatLicenseName(license.applicationType)}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </FormControl>
 
               {selectedLicense && (
-                <div className="alert alert-info">
-                  <h5 className="alert-heading">Renewal Details</h5>
-                  <div className="d-flex align-items-center mb-2">
-                    <i className="bi bi-info-circle-fill me-2"></i>
-                    <span>You are renewing: <strong>{formatLicenseName(selectedLicense)}</strong></span>
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <i className="bi bi-clock-history me-2"></i>
-                    <span>Processing time: 3-5 business days</span>
-                  </div>
-                </div>
+                <Alert 
+                  severity="info" 
+                  icon={<InfoIcon fontSize="inherit" />}
+                  sx={{ mb: 4 }}
+                >
+                  <AlertTitle>Renewal Details</AlertTitle>
+                  <Typography variant="body2">
+                    You are renewing: <strong>{formatLicenseName(selectedLicense)}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Processing time: 3-5 business days
+                  </Typography>
+                </Alert>
               )}
 
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <div className="text-muted small">
-                  <i className="bi bi-shield-lock me-1"></i> Secure government portal
-                </div>
-                <button
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                mt: 4 
+              }}>
+                <Typography variant="body2" color="text.secondary">
+                  <SecureIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Secure government portal
+                </Typography>
+                <Button
+                  variant="contained"
                   onClick={handleRenew}
                   disabled={!selectedLicense || isSubmitting}
-                  className="btn btn-primary px-4"
+                  startIcon={<RenewIcon />}
                 >
                   {isSubmitting ? (
                     <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
                       Processing...
                     </>
                   ) : (
-                    <>
-                      <i className="bi bi-arrow-repeat me-2"></i>
-                      Submit Renewal Request
-                    </>
+                    'Submit Renewal Request'
                   )}
-                </button>
-              </div>
+                </Button>
+              </Box>
 
               {renewalStatus.message && (
-                <div className={`alert mt-4 ${renewalStatus.isSuccess ? 'alert-success' : 'alert-danger'}`}>
-                  <i className={`bi ${renewalStatus.isSuccess ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
+                <Alert 
+                  severity={renewalStatus.isSuccess ? "success" : "error"} 
+                  sx={{ mt: 4 }}
+                  icon={renewalStatus.isSuccess ? <SuccessIcon /> : <ErrorIcon />}
+                >
                   {renewalStatus.message}
-                </div>
+                </Alert>
               )}
-            </div>
+            </CardContent>
 
-            <div className="card-footer bg-light">
-              <div className="row">
-                <div className="col-md-4 mb-2 mb-md-0">
-                  <div className="d-flex align-items-center">
-                    <i className="bi bi-headset me-2 text-primary"></i>
-                    <div>
-                      <small className="text-muted">Need help?</small>
-                      <div className="fw-bold">Contact Support</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-4 mb-2 mb-md-0">
-                  <div className="d-flex align-items-center">
-                    <i className="bi bi-file-text me-2 text-primary"></i>
-                    <div>
-                      <small className="text-muted">Documents</small>
-                      <div className="fw-bold">Renewal Guidelines</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="d-flex align-items-center">
-                    <i className="bi bi-calendar-check me-2 text-primary"></i>
-                    <div>
-                      <small className="text-muted">Renewal Period</small>
-                      <div className="fw-bold">Valid for 1 year</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            <Divider />
+
+            <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center">
+                    <Tooltip title="Contact support">
+                      <IconButton color="primary" sx={{ mr: 1 }}>
+                        <HelpIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Need help?
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold">
+                        Contact Support
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center">
+                    <Tooltip title="View guidelines">
+                      <IconButton color="primary" sx={{ mr: 1 }}>
+                        <DocumentIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Documents
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold">
+                        Renewal Guidelines
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center">
+                    <Tooltip title="Renewal period">
+                      <IconButton color="primary" sx={{ mr: 1 }}>
+                        <CalendarIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Renewal Period
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold">
+                        Valid for 1 year
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
-}
+};
 
 export default RenewLicense;
