@@ -12,41 +12,46 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-blue-600">Approval Hub</span>
+    <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm fixed-top">
+      <div className="container">
+        <Link className="navbar-brand fw-bold text-primary" to="/">
+          LicenseHub
+        </Link>
+        
+        <div className="d-flex align-items-center">
+          {currentUser ? (
+            <div className="d-flex align-items-center">
+              {currentUser.role === 'admin' && (
+                <Link to="/admin" className="btn btn-sm btn-outline-primary me-2">
+                  Admin Dashboard
+                </Link>
+              )}
+              <span className="me-3 d-none d-md-inline text-muted">
+                Welcome, <span className="text-dark">{currentUser.name}</span>
+              </span>
+              <div className="dropdown">
+  
+  
+  <button 
+        onClick={handleLogout}
+        className="btn btn-outline-danger btn-sm"
+      >
+        <i className="bi bi-box-arrow-right me-1"></i>
+        Sign Out
+      </button>
+</div>
+
             </div>
-          </div>
-          <div className="flex items-center">
-            {currentUser ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">Welcome, {currentUser.name}</span>
-                {currentUser.role === 'admin' && (
-                  <Link to="/admin" className="text-sm text-blue-600 hover:text-blue-800">
-                    Admin Dashboard
-                  </Link>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex space-x-4">
-                <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800">
-                  Login
-                </Link>
-                <Link to="/register" className="text-sm text-blue-600 hover:text-blue-800">
-                  Register
-                </Link>
-              </div>
-            )}
-          </div>
+          ) : (
+            <div>
+              <Link to="/login" className="btn btn-sm btn-outline-secondary me-2">
+                Login
+              </Link>
+              <Link to="/register" className="btn btn-sm btn-primary">
+                Register
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </nav>

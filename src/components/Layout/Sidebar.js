@@ -1,43 +1,59 @@
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
 function Sidebar() {
   const { currentUser } = useContext(AuthContext);
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="w-64 bg-white shadow-sm h-screen sticky top-0 pt-16">
-      <div className="p-4">
-        <nav className="space-y-2">
+    <div className="d-none d-md-block col-md-3 col-lg-2 bg-white border-end vh-100 position-fixed pt-5">
+      <div className="sidebar-sticky pt-3">
+        <ul className="nav flex-column">
           {currentUser && currentUser.role === 'user' && (
             <>
-              <Link
-                to="/"
-                className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
-              >
-                Apply for License
-              </Link>
-              <Link
-                to="/status"
-                className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
-              >
-                Application Status
-              </Link>
-              <Link
-                to="/renew"
-                className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
-              >
-                Renew License
-              </Link>
+              <li className="nav-item">
+                <Link
+                  to="/"
+                  className={`nav-link ${isActive('/') ? 'active' : ''}`}
+                >
+                  <i className="bi bi-file-earmark-plus me-2"></i>
+                  Apply for License
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  to="/status"
+                  className={`nav-link ${isActive('/status') ? 'active' : ''}`}
+                >
+                  <i className="bi bi-list-check me-2"></i>
+                  Application Status
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  to="/renew"
+                  className={`nav-link ${isActive('/renew') ? 'active' : ''}`}
+                >
+                  <i className="bi bi-arrow-repeat me-2"></i>
+                  Renew License
+                </Link>
+              </li>
+              <li className="nav-item my-2 border-top"></li>
             </>
           )}
-          <Link
-            to="/help"
-            className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
-          >
-            Help Guides
-          </Link>
-        </nav>
+          <li className="nav-item">
+            <Link
+              to="/help"
+              className={`nav-link ${isActive('/help') ? 'active' : ''}`}
+            >
+              <i className="bi bi-question-circle me-2"></i>
+              Help Guides
+            </Link>
+          </li>
+        </ul>
       </div>
     </div>
   );

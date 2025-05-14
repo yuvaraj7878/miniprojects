@@ -1,8 +1,23 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import '../../App.css';
+import { 
+  Box, 
+  Typography, 
+  TextField, 
+  Button, 
+  Divider, 
+  Alert,
+  InputAdornment,
+  IconButton,
+  Grid,
+  Paper,
+  Container,
+  MenuItem
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import AuthIllustration from '../../assets/pic2.jpg';
+import Logo from '../../assets/pic3.png';
 
 function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -12,9 +27,18 @@ function RegisterForm() {
     businessType: '',
     phone: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const businessTypes = [
+    { value: 'street_vendor', label: 'Street Vendor' },
+    { value: 'small_shop', label: 'Small Shop' },
+    { value: 'restaurant', label: 'Restaurant' },
+    { value: 'bakery', label: 'Bakery' },
+    { value: 'service_provider', label: 'Service Provider' },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,109 +48,179 @@ function RegisterForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (register(formData)) {
-      navigate('/');
-    } else {
-      setError('Registration failed. Please try again.');
+    try {
+      if (await register(formData)) {
+        navigate('/');
+      } else {
+        setError('Registration failed. Please try again.');
+      }
+    } catch (err) {
+      setError('An error occurred during registration');
     }
   };
 
   return (
-    <div className="register-container">
-      <div className="card register-card">
-        <div className="card-body">
-          <h2 className="card-title text-center mb-4">Register for Approval Hub</h2>
-          {error && <div className="alert alert-danger">{error}</div>}
+    <Container maxWidth="lg" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', py: 4 }}>
+      <Paper elevation={6} sx={{ width: '100%', overflow: 'hidden' }}>
+        <Grid container>
+          {/* Illustration Side */}
+          <Grid item xs={12} md={6} sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)',
+            p: 4,
+            minHeight: 500
+          }}>
+            <Box sx={{ textAlign: 'center', color: 'white' }}>
+              <img 
+                src={AuthIllustration} 
+                alt="Authentication illustration" 
+                style={{ maxWidth: '100%', height: 'auto', maxHeight: 300 }}
+              />
+              <Typography variant="h5" sx={{ mt: 3, fontWeight: 600 }}>
+                Join Vendor Approval Hub
+              </Typography>
+              <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                Streamline your vendor licensing process
+              </Typography>
+            </Box>
+          </Grid>
           
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="name" className="form-label">Full Name</label>
-              <input
-                type="text"
-                className="form-control"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">Email address</label>
-              <input
-                type="email"
-                className="form-control"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            
-            <div className="mb-3">
-              <label htmlFor="phone" className="form-label">Phone Number</label>
-              <input
-                type="tel"
-                className="form-control"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="businessType" className="form-label">Business Type</label>
-              <select
-                className="form-select"
-                id="businessType"
-                name="businessType"
-                value={formData.businessType}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Business Type</option>
-                <option value="hotel">Hotel</option>
-                <option value="small_shop">Small Shop</option>
-                <option value="bakery">Bakery</option>
-                <option value="street_vendor">Street Vendor</option>
-              </select>
-            </div>
-            
-            <button type="submit" className="btn btn-primary w-100 mb-3">
-              Register
-            </button>
-            
-            <div className="text-center">
-              <p className="text-muted">
-                Already have an account?{' '}
-                <a href="/login" className="text-primary">
-                  Login here
-                </a>
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          {/* Form Side */}
+          <Grid item xs={12} md={6} sx={{ p: { xs: 3, sm: 5 } }}>
+            <Box sx={{ maxWidth: 400, mx: 'auto' }}>
+              <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <img src={Logo} alt="Logo" style={{ height: 50, marginBottom: 16 }} />
+                <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
+                  Create Account
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Get started with your vendor profile
+                </Typography>
+              </Box>
+              
+              {error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  {error}
+                </Alert>
+              )}
+              
+              <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  variant="outlined"
+                  margin="normal"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  variant="outlined"
+                  margin="normal"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                
+                <TextField
+                  fullWidth
+                  label="Password"
+                  variant="outlined"
+                  margin="normal"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                  sx={{ mb: 2 }}
+                />
+                
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  variant="outlined"
+                  margin="normal"
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                
+                <TextField
+                  select
+                  fullWidth
+                  label="Business Type"
+                  variant="outlined"
+                  margin="normal"
+                  name="businessType"
+                  value={formData.businessType}
+                  onChange={handleChange}
+                  required
+                  sx={{ mb: 3 }}
+                >
+                  {businessTypes.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  type="submit"
+                  sx={{ py: 1.5, mb: 2 }}
+                >
+                  Create Account
+                </Button>
+                
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
+                  By registering, you agree to our Terms of Service and Privacy Policy
+                </Typography>
+                
+                <Divider sx={{ my: 3 }} />
+                
+                <Box sx={{ textAlign: 'center', mt: 3 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    Already have an account?{' '}
+                    <Link to="/login" style={{ textDecoration: 'none', fontWeight: 600 }}>
+                      Sign in
+                    </Link>
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Container>
   );
 }
 
