@@ -156,7 +156,6 @@ const ApplicationForm = () => {
           </Button>
         )}
       </Box>
-
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
