@@ -16,7 +16,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import AuthIllustration from '../../assets/pic2.jpg';
+import AuthIllustration from '../../assets/pic3.jpg';
 import Logo from '../../assets/pic3.png';
 
 function RegisterForm() {
