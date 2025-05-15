@@ -269,7 +269,7 @@ function ApplicationForm() {
                       label={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                           <Typography>{cert.name}</Typography>
-                          <Chip label={`$${cert.fee}`} color="primary" />
+                          <Chip label={`RS.${cert.fee}`} color="primary" />
                         </Box>
                       }
                     />
@@ -319,7 +319,7 @@ function ApplicationForm() {
         return (
           <Box>
             <Typography variant="h4" gutterBottom>
-              Total Fee: ${formData.payment.total}
+              Total Fee: RS.{formData.payment.total}
             </Typography>
             <Card sx={{ maxWidth: 500, mx: 'auto' }}>
               <CardContent>

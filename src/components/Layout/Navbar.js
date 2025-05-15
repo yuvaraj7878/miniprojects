@@ -4,7 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 
 function Navbar() {
   const { currentUser, logout } = useContext(AuthContext);
-  const { clearLocalStorage } = useContext(AuthContext);
+  // const { clearLocalStorage } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -40,9 +40,9 @@ function Navbar() {
         <i className="bi bi-box-arrow-right me-1"></i>
         Sign Out
       </button>
-      <button onClick={clearLocalStorage} style={{ margin: '10px', padding: '8px 16px', cursor: 'pointer' }}>
+      {/* <button onClick={clearLocalStorage} style={{ margin: '10px', padding: '8px 16px', cursor: 'pointer' }}>
       Clear Local Storage
-    </button>
+    </button> */}
 </div>
 
             </div>
