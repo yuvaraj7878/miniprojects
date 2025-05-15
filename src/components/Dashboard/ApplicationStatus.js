@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -83,28 +84,28 @@ const documentLabels = [
 
 
   
-  const fetchApplications = () => {
-    setLoading(true);
-    try {
-      // Simulate API call
-      setTimeout(() => {
-        const storedApps = JSON.parse(localStorage.getItem('applications') || []);
-        setApplications(storedApps);
-        if (storedApps.length > 0 && !selectedApp) {
-          setSelectedApp(storedApps[storedApps.length - 1]);
-        }
-        setLastUpdated(dayjs().format('DD MMM YYYY, hh:mm A'));
-        setLoading(false);
-      }, 800);
-    } catch (error) {
-      console.error('Error fetching applications:', error);
+  const fetchApplications = useCallback(() => {
+  setLoading(true);
+  try {
+    setTimeout(() => {
+      const storedApps = JSON.parse(localStorage.getItem('applications') || "[]");
+      setApplications(storedApps);
+      if (storedApps.length > 0 && !selectedApp) {
+        setSelectedApp(storedApps[storedApps.length - 1]);
+      }
+      setLastUpdated(dayjs().format('DD MMM YYYY, hh:mm A'));
       setLoading(false);
-    }
-  };
+    }, 800);
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    setLoading(false);
+  }
+}, [selectedApp]);
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
+useEffect(() => {
+  fetchApplications();
+}, [fetchApplications]);
+
 
 
   const handleTabChange = (event, newValue) => {

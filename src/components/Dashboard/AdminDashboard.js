@@ -20,7 +20,6 @@ import {
   Paper,
   Divider,
   Chip,
-  Avatar,
   List,
   ListItem,
   ListItemText,

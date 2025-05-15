@@ -22,8 +22,8 @@ import {
 } from '@mui/material';
 import {
   Person, Email, Phone, Home,
-  Store, Assignment, Description,
-  AttachFile, CreditCard, CheckCircle
+  Store, 
+  AttachFile, CheckCircle
 } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
 
